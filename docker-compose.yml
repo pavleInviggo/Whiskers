@@ -1,0 +1,35 @@
+services:
+  traefik:
+    image: traefik:v3
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --api.insecure=true            # dashboard on :8080, local only
+    ports: ["80:80", "8080:8080"]
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
+
+  app:
+    build: .
+    deploy:
+      replicas: 2                      # so: no container_name, no ports
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.app.rule=Host(`localhost`)
+      - traefik.http.routers.app.entrypoints=web
+      - traefik.http.services.app.loadbalancer.server.port=3000
+    environment:
+      DATABASE_URL: postgres://feeder:feeder@postgres:5432/feeder
+      REDIS_HOST: redis
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  postgres:
+    image: postgres:17
+    environment: { POSTGRES_USER: feeder, POSTGRES_PASSWORD: feeder, POSTGRES_DB: feeder }
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U feeder"], interval: 5s, retries: 10 }
+
+  redis:
+    image: redis:7
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, retries: 10 }
