@@ -1,0 +1,21 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs" // project is CommonJS (no "type": "module" in package.json)
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Feeding {
+  id       Int      @id @default(autoincrement())
+  source   String // 'nestjs/schedule' | 'bullmq' | 'manual' (see FeedingSource)
+  instance String // os.hostname() of the replica that inserted the row
+  fedAt    DateTime @default(now()) @map("fed_at") @db.Timestamptz(6)
+
+  @@map("feedings")
+}

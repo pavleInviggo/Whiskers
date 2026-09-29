@@ -11,6 +11,7 @@ services:
 
   app:
     build: .
+    image: whiskers-app                # named so the migrate service can reuse it
     deploy:
       replicas: 2                      # so: no container_name, no ports
     labels:
@@ -22,11 +23,21 @@ services:
       DATABASE_URL: postgres://feeder:feeder@postgres:5432/feeder
       REDIS_HOST: redis
     depends_on:
-      postgres: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+
+  migrate:                             # runs `prisma migrate deploy` once, then exits
+    image: whiskers-app                # same image as app, different command
+    command: ["npx", "prisma", "migrate", "deploy"]
+    restart: "no"                      # quoted: bare `no` is YAML boolean false
+    environment:
+      DATABASE_URL: postgres://feeder:feeder@postgres:5432/feeder
+    depends_on:
+      postgres: { condition: service_healthy }
 
   postgres:
     image: postgres:17
+    ports: ["5432:5432"]               # so the Prisma CLI on the host can reach it
     environment: { POSTGRES_USER: feeder, POSTGRES_PASSWORD: feeder, POSTGRES_DB: feeder }
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U feeder"], interval: 5s, retries: 10 }
 
