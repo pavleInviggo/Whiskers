@@ -1,0 +1,11 @@
+<pre id="log"></pre>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script>
+  const log = (msg) => {
+    const t = new Date().toTimeString().slice(0, 8);
+    document.getElementById('log').textContent += `${t}  ${msg}\n`;
+  };
+  const socket = io('http://localhost', { transports: ['websocket'] });
+  socket.on('hello',   ({ instance }) => { document.title = instance; log(`connected to ${instance}`); });
+  socket.on('feeding', (f) => log(`${f.source} fed Whiskers from ${f.instance}`));
+</script>
