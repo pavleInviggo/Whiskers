@@ -13,6 +13,6 @@ export class FeederGateway implements OnGatewayConnection{
     }
 
     broadcastFeeding(feeding: Feeding) {
-        this.server.emit('feeding', feeding); // for now: only sockets on THIS process
+        this.server.emit('feeding', feeding); // reaches sockets on every replica via RedisIoAdapter
     }
 }

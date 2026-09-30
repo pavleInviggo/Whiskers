@@ -21,7 +21,7 @@ export class BullmqFeeder implements OnModuleInit {
 export class FeederProcessor extends WorkerHost {
   constructor(private readonly feedings: FeedingsService) { super(); }
 
-  async process(job: Job) {
+  async process(_job: Job) {
     return this.feedings.record('bullmq');
   }
 }
