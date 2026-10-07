@@ -1,3 +1,6 @@
+# Two ways to run:
+#   docker compose build && docker compose up -d   -> full stack in containers (traefik + 2 app replicas + migrate)
+#   docker compose up -d postgres redis            -> infra only; then run the app on the host with `pnpm start:dev` (hot reload, no docker build)
 services:
   traefik:
     image: traefik:v3
@@ -37,10 +40,11 @@ services:
 
   postgres:
     image: postgres:17
-    ports: ["5432:5432"]               # so the Prisma CLI on the host can reach it
+    ports: ["5432:5432"]               # so the app + Prisma CLI on the host can reach it
     environment: { POSTGRES_USER: feeder, POSTGRES_PASSWORD: feeder, POSTGRES_DB: feeder }
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U feeder"], interval: 5s, retries: 10 }
 
   redis:
     image: redis:7
+    ports: ["6379:6379"]               # so the app on the host can reach it (BullMQ + socket.io adapter)
     healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, retries: 10 }

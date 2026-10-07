@@ -1,3 +1,4 @@
+import 'dotenv/config'; // must stay first: app.module reads process.env at import time
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { RedisIoAdapter } from './ws/redis-io.adapter';
